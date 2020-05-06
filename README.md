@@ -1,4 +1,16 @@
-# Adfone
-Adfone interview app 
+Adfone interview app
+=====================
 
-Clone the repo and open in Android Studio to build and run the project
+Clone the repo and build project locally or open in Android Studio to edit.
+
+Tests
+-----
+Launch unit tests using command: ./gradlew test
+
+
+
+
+Copyright 2020 Brio Strategies, Inc.
+------------------------------------
+For more information please contact nick@briostrategies.com
+

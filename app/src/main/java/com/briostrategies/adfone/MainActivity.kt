@@ -1,11 +1,11 @@
 package com.briostrategies.adfone
 
 import android.os.Bundle
-import android.util.Log
 import android.widget.SeekBar
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory
+import com.google.android.gms.location.LocationServices
+import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : BaseActivity() {
@@ -14,8 +14,9 @@ class MainActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-
-        val viewModel = ViewModelProvider(this, AndroidViewModelFactory(application))
+        // Inject location client as external dependency for view model
+        val locationClient = LocationServices.getFusedLocationProviderClient(application)
+        val viewModel = ViewModelProvider(this, MainActivityViewModelFactory(locationClient))
             .get(MainActivityViewModel::class.java)
             .apply {
                 placesData.observe(this@MainActivity, Observer { processPlaces(it) })
@@ -33,16 +34,17 @@ class MainActivity : BaseActivity() {
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
             override fun onStopTrackingTouch(seekBar: SeekBar?) {}
         })
-
-//        Picasso.get()
-//            .load(url)
-//            .placeholder(R.drawable.user_placeholder)
-//            .error(R.drawable.user_placeholder_error)
-//            .into(imageView);
     }
 
-    private fun processPlaces(places: Places) {
-        Log.d(TAG, "$places")
+    private fun processPlaces(places: Places?) {
+        Logger.d(TAG, "$places")
+        val uri =
+            PlacesApi.buildPhotoUri(places?.places?.getOrNull(0)?.photos?.getOrNull(0) ?: return)
+        Logger.d(TAG, "Photo Uri = $uri")
+
+        Picasso.get()
+            .load(uri)
+            .into(image)
     }
 
     companion object {

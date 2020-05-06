@@ -2,7 +2,6 @@ package com.briostrategies.adfone
 
 import android.Manifest
 import android.os.Bundle
-import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import com.karumi.dexter.Dexter
 import com.karumi.dexter.PermissionToken
@@ -32,7 +31,7 @@ open class BaseActivity : AppCompatActivity(), PermissionListener {
     }
 
     override fun onPermissionDenied(response: PermissionDeniedResponse?) {
-        Log.d(TAG, "Permission is not denied, finishing")
+        Logger.d(TAG, "Permission is denied, finishing")
         finish()
         // TODO process more user friendly
     }

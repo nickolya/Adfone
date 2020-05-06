@@ -14,14 +14,12 @@ import retrofit2.http.QueryMap
  */
 interface PlacesApi {
 
-    @GET("maps/api/place/nearbysearch/json")
+    @GET("nearbysearch/json")
     suspend fun getPlaces(@QueryMap options: Map<String, String>): Places
-
-//    https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=CnRtAAAATLZNl354RwP_9UKbQ_5Psy40texXePv4oAlgP4qNEkdIrkyse7rPXYGd9D_Uj1rVsQdWT4oRz4QrYAJNpFX7rzqqMlZw2h2E2y5IKMUZ7ouD_SlcHxYq1yL4KbKUv3qtWgTK0A6QbGh87GB3sscrHRIQiG2RrmU_jF4tENr9wGS_YxoUSSDrYjWmrNfeEHSGSc3FyhNLlBU&key=YOUR_API_KEY
 
     companion object {
 
-        private const val BASE_ADDRESS = "https://maps.googleapis.com/"
+        private const val BASE_ADDRESS = "https://maps.googleapis.com/maps/api/place/"
         private const val KEY = "AIzaSyA7AqFTyJC8-PjG0cQ-7LyRSX3GvkePmt8"
 
         private const val MAX_WIDTH = 400
@@ -61,7 +59,7 @@ interface PlacesApi {
             }
         }
 
-        fun builsPhotoUri(photo: Photo) = Uri.parse(BASE_ADDRESS)
+        fun buildPhotoUri(photo: Photo): Uri = Uri.parse(BASE_ADDRESS)
             .buildUpon()
             .appendEncodedPath("photo")
             .appendQueryParameter("photoreference", photo.reference)

@@ -1,51 +1,68 @@
 package com.briostrategies.adfone
 
-import android.app.Application
 import android.location.Location
-import android.util.Log
+import androidx.annotation.VisibleForTesting
+import androidx.annotation.VisibleForTesting.PRIVATE
 import androidx.lifecycle.*
+import androidx.lifecycle.ViewModelProvider.Factory
 import com.briostrategies.adfone.PlacesApi.Companion.buildPlacesOptions
-import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.FusedLocationProviderClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
-class MainActivityViewModel(application: Application) : AndroidViewModel(application) {
-    private val locationClient = LocationServices.getFusedLocationProviderClient(application)
-
-    private val locationData = MutableLiveData<Location>()
+class MainActivityViewModel(private val locationClient: FusedLocationProviderClient) : ViewModel() {
+    private val locationData = MutableLiveData<Location?>()
 
     val placesData = locationData.switchMap { location ->
+        Logger.d(TAG, "Location is detected: $location")
         liveData(context = viewModelScope.coroutineContext + Dispatchers.IO) {
-            emit(PlacesApi.api.getPlaces(buildPlacesOptions(location, radius)))
+            val places = location?.let {
+                PlacesApi.api.getPlaces(buildPlacesOptions(location, radius))
+            }
+            Logger.d(TAG, "Places loaded: $places")
+            emit(places)
         }
     }
 
     var radius: Int = DEFAULT_RADIUS
         set(progress) {
-            field = DEFAULT_RADIUS * (progress + 1) / 2
+            field = calculateNewRadius(progress)
+            Logger.d(TAG, "New search radius: $field meters")
         }
 
+    // Calculates radius in meters as representation of 5, 10, 15, 20, 25, 30 miles and then capped by max value of 50 km
+    @VisibleForTesting(otherwise = PRIVATE)
+    fun calculateNewRadius(step: Int): Int {
+        check(step >= 0) { "Step parameter should be positive" }
+        return minOf(DEFAULT_RADIUS * (step + 1) / 2, 50_000)
+    }
+
     fun update() {
+        Logger.i(TAG, "New search initiated")
         viewModelScope.launch(Dispatchers.Main) {
-            val location = getCurrentLocation()
-            Log.d(TAG, "Location $location")
-            if (location != null) {
-                locationData.value = location
+            locationData.value = suspendCoroutine { cont ->
+                locationClient.lastLocation
+                    .addOnSuccessListener { location -> cont.resume(location) }
+                    .addOnFailureListener { cont.resume(null) }
             }
         }
     }
 
-    private suspend fun getCurrentLocation() = suspendCoroutine<Location?> { cont ->
-        locationClient.lastLocation
-            .addOnSuccessListener { location -> cont.resume(location) }
-            .addOnFailureListener { error -> cont.resumeWithException(error) }
-    }
-
     companion object {
         private const val TAG = "MainActivityViewModel"
-        private const val DEFAULT_RADIUS = 16093
+        private const val DEFAULT_RADIUS = 16094
     }
+}
+
+@Suppress("UNCHECKED_CAST")
+class MainActivityViewModelFactory(private val client: FusedLocationProviderClient) : Factory {
+
+    override fun <T : ViewModel> create(modelClass: Class<T>): T =
+        if (modelClass.isAssignableFrom(MainActivityViewModel::class.java)) {
+            MainActivityViewModel(client) as T
+        } else {
+            throw IllegalArgumentException("Factory generates only MainActivityViewModel")
+        }
 }
