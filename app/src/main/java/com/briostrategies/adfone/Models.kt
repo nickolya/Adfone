@@ -15,7 +15,10 @@ data class Place(
     @SerializedName("photos") val photos: List<Photo>
 )
 
+data class Status(
+    @SerializedName("status") var status: String
+)
+
 data class Places(
-    @SerializedName("status") var status: String,
     @SerializedName("results") var places: List<Place>
 )
