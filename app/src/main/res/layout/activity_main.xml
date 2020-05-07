@@ -17,10 +17,13 @@
 
     <EditText
         android:id="@+id/keyword"
-        android:hint="@string/keyword"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginBottom="@dimen/margin_default"
+        android:hint="@string/keyword"
+        android:imeOptions="actionDone"
+        android:inputType="textAutoComplete"
+        android:maxLines="1"
         app:layout_constraintBottom_toTopOf="@id/radius"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

@@ -1,5 +1,7 @@
 package com.briostrategies.adfone;
 
+import android.app.Application;
+
 import com.google.android.gms.location.FusedLocationProviderClient;
 
 import org.junit.Before;
@@ -15,13 +17,13 @@ import static org.junit.Assert.assertEquals;
 public class MainActivityViewModelUnitTest {
 
     @Mock
-    private FusedLocationProviderClient mockClient;
+    private Application mockApplication;
     private MainActivityViewModel viewModel;
 
     @Before
     public void setup() {
         MockitoAnnotations.initMocks(this);
-        viewModel = new MainActivityViewModel(mockClient);
+        viewModel = new MainActivityViewModel(mockApplication);
     }
 
     @Test

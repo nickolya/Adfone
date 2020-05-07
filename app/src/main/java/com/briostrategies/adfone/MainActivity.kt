@@ -1,11 +1,12 @@
 package com.briostrategies.adfone
 
 import android.os.Bundle
+import android.view.inputmethod.EditorInfo.IME_ACTION_DONE
 import android.widget.SeekBar
 import androidx.core.widget.doAfterTextChanged
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import com.google.android.gms.location.LocationServices
+import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.activity_main.*
 
@@ -15,9 +16,7 @@ class MainActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // Inject location client as external dependency for view model
-        val locationClient = LocationServices.getFusedLocationProviderClient(application)
-        val viewModel = ViewModelProvider(this, MainActivityViewModelFactory(locationClient))
+        val viewModel = ViewModelProvider(this, AndroidViewModelFactory(application))
             .get(MainActivityViewModel::class.java)
             .apply {
                 placesData.observe(this@MainActivity, Observer { processPlaces(it) })
@@ -25,7 +24,7 @@ class MainActivity : BaseActivity() {
             }
 
         button.setOnClickListener {
-            viewModel.update()
+            viewModel.search()
         }
 
         radius.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
@@ -37,7 +36,15 @@ class MainActivity : BaseActivity() {
             override fun onStopTrackingTouch(seekBar: SeekBar?) {}
         })
 
-        keyword.doAfterTextChanged { viewModel.keyword = it }
+        keyword.apply {
+            doAfterTextChanged { viewModel.keyword = it }
+            setOnEditorActionListener { _, action, _ ->
+                if (action == IME_ACTION_DONE) {
+                    viewModel.search()
+                }
+                false
+            }
+        }
     }
 
     private fun updateMiles(radiusMiles: Int) {

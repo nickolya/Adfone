@@ -4,6 +4,7 @@ buildscript {
     ext {
         kotlin_version = '1.3.71'
         retrofit_version = '2.8.1'
+        room_version = '2.2.5'
     }
 
     repositories {
