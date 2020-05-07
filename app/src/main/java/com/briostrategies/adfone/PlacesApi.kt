@@ -6,6 +6,7 @@ import com.google.gson.Gson
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.Response
+import okhttp3.ResponseBody.Companion.toResponseBody
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -34,7 +35,8 @@ interface PlacesApi {
                 .baseUrl(BASE_ADDRESS)
                 .addConverterFactory(GsonConverterFactory.create())
                 .apply {
-                    val clientBuilder = OkHttpClient.Builder().addInterceptor(retryMaxRadiusInterceptor)
+                    val clientBuilder =
+                        OkHttpClient.Builder().addInterceptor(retryMaxRadiusInterceptor)
                     if (BuildConfig.DEBUG) {
                         val loggingInterceptor = HttpLoggingInterceptor().apply {
                             setLevel(HttpLoggingInterceptor.Level.BODY)
@@ -51,7 +53,6 @@ interface PlacesApi {
             location: Location,
             radius: Int,
             keyword: String? = null
-
         ) = mutableMapOf(
             "radius" to "$radius",
             "location" to String.format("%s,%s", location.latitude, location.longitude),
@@ -78,7 +79,9 @@ interface PlacesApi {
                     val request = request()
                     val response = proceed(request)
                     if (response.isSuccessful) {
-                        val status = Gson().fromJson(response.body!!.string(), Status::class.java)
+                        val mediaType = response.body!!.contentType()
+                        val responseString = response.body!!.string()
+                        val status = Gson().fromJson(responseString, Status::class.java)
                         if (status.status == "ZERO_RESULTS") {
                             val url = request.url.newBuilder()
                                 .setQueryParameter("radius", "50000")
@@ -88,6 +91,9 @@ interface PlacesApi {
                                 .build()
                             return proceed(newRequest)
                         }
+                        return response.newBuilder()
+                            .body(responseString.toResponseBody(mediaType))
+                            .build()
                     }
                     return response
                 }

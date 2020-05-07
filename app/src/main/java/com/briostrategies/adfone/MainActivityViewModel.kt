@@ -1,6 +1,7 @@
 package com.briostrategies.adfone
 
 import android.location.Location
+import android.text.Editable
 import androidx.annotation.VisibleForTesting
 import androidx.annotation.VisibleForTesting.PRIVATE
 import androidx.lifecycle.*
@@ -19,16 +20,20 @@ class MainActivityViewModel(private val locationClient: FusedLocationProviderCli
         Logger.d(TAG, "Location is detected: $location")
         liveData(context = viewModelScope.coroutineContext + Dispatchers.IO) {
             val places = location?.let {
-                PlacesApi.api.getPlaces(buildPlacesOptions(location, radius))
+                PlacesApi.api.getPlaces(buildPlacesOptions(location, radius, keyword?.toString()))
             }
             Logger.d(TAG, "Places loaded: $places")
             emit(places)
         }
     }
 
+    var keyword: Editable? = null
+
+    val radiusData = MutableLiveData<Int>().apply { value = 10 }
     var radius: Int = DEFAULT_RADIUS
         set(progress) {
             field = calculateNewRadius(progress)
+            radiusData.value = field * 10 / (DEFAULT_RADIUS)
             Logger.d(TAG, "New search radius: $field meters")
         }
 
